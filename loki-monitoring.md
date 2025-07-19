@@ -1,4 +1,10 @@
-# Centralized Logging with Loki & Grafana
+---
+title: 📝 Centralized Logging with Loki & Grafana
+date: 2025-07-10
+description: How to collect logs from FastAPI and Celery using Loki
+---
+
+# 📝 Centralized Logging with Loki & Grafana
 
 In my [previous blog](https://medium.com/@mrcompiler/handling-long-running-jobs-in-fastapi-with-celery-rabbitmq-9c3d72944410), I demonstrated how to handle long-running jobs in FastAPI using Celery and RabbitMQ. While this setup works well for asynchronous task execution, monitoring logs from multiple services — like the FastAPI API server and Celery workers — becomes a challenge as the system grows.
 
@@ -7,6 +13,7 @@ Without a centralized log management system, you often find yourself SSH-ing int
 To solve this, we'll integrate Grafana Loki — a lightweight, multi-tenant log aggregation system — with Grafana, a popular visualization and monitoring tool. With this setup, we'll be able to collect, query, and visualize logs from our FastAPI application and Celery workers in a centralized dashboard.
 
 In this post, I’ll walk you through:
+
 - What Loki is and why it’s a good fit for FastAPI + Celery systems
 - How to configure structured JSON logging in both FastAPI and Celery
 - How to push logs directly from your Python applications to Loki using its HTTP API
@@ -16,9 +23,11 @@ In this post, I’ll walk you through:
 By the end of this tutorial, you'll have a lightweight, centralized log monitoring setup for your distributed FastAPI and Celery applications — no extra log shipping service required.
 
 ## 📖 What is Loki and Why Use It?
+
 When working with multiple services like an API server, background workers, and message queues, managing logs across those services can quickly become difficult. You might need to SSH into containers, tail log files, or build complex log pipelines just to debug an issue. This is where Loki comes in.
 
 ### 🔍 What is Loki?
+
 Grafana Loki is a horizontally scalable, highly available log aggregation system inspired by Prometheus. But unlike traditional log management systems like the ELK (Elasticsearch, Logstash, Kibana) stack, Loki takes a more lightweight approach.
 
 Instead of indexing the entire content of logs, Loki indexes only a set of labels for each log stream (like app=fastapi or service=celery), which makes it much faster and more cost-effective for most use cases.
@@ -26,6 +35,7 @@ Instead of indexing the entire content of logs, Loki indexes only a set of label
 Loki works perfectly with Grafana for querying and visualizing logs — just like you would with time-series metrics from Prometheus.
 
 ### ✅ Why Use Loki for FastAPI + Celery?
+
 Here’s why Loki is a great fit for our setup:
 
 Lightweight and easy to deploy — perfect for containerized environments or small projects
@@ -40,8 +50,8 @@ Cost-efficient since it avoids full-text indexing, focusing only on labels
 
 For a FastAPI + Celery system, this means you can centralize logs from your API server and worker processes into a single place, query them in real-time, and visualize errors, job statuses, or debug information in Grafana — all without adding unnecessary operational overhead.
 
-
 ## 📖 System Architecture Explanation
+
 The architecture for our centralized logging setup is organized into three distinct layers: Application Layer, Messaging, and Logging & Monitoring.
 
 - The Application Layer contains two main services:
@@ -52,6 +62,7 @@ The architecture for our centralized logging setup is organized into three disti
 - The Messaging component, RabbitMQ, acts as the message broker facilitating reliable communication between FastAPI and Celery. FastAPI publishes job messages to the queue, and Celery workers consume them when ready.
 
 - The Logging & Monitoring layer consists of two important tools:
+
   - Loki, a lightweight, horizontally scalable log aggregation system where both FastAPI and Celery services push their logs directly via HTTP API.
 
   - Grafana, a powerful visualization platform that connects to Loki, queries the logs, and presents them through customizable dashboards for easy monitoring and debugging.
@@ -67,6 +78,7 @@ To keep things simple and consistent with your FastAPI + Celery + RabbitMQ setup
 Here’s how to set up these two services:
 
 #### 📦 Step 1: Add Loki Service
+
 In your existing docker-compose.yml, add the following service definition for Loki:
 
 ```yaml
@@ -75,17 +87,21 @@ services:
     image: grafana/loki:2.9.4
     container_name: loki
     ports:
-      - "3100:3100"
+      - '3100:3100'
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
 ```
+
 Explanation:
+
 - Exposes port 3100 for Loki’s HTTP API.
 - Mounts a configuration file loki-config.yaml from your project directory to the container.
 
 #### 📦 Step 2: Create Loki Configuration File([Ref](https://grafana.com/docs/loki/latest/configure/))
+
 In your project root, create a loki-config.yaml with this minimal config:
+
 ```yaml
 auth_enabled: false
 
@@ -102,21 +118,23 @@ common:
 
 schema_config:
   configs:
-  - from: 2025-01-01
-    store: tsdb
-    object_store: filesystem
-    schema: v13
-    index:
-      prefix: index_
-      period: 24h
+    - from: 2025-01-01
+      store: tsdb
+      object_store: filesystem
+      schema: v13
+      index:
+        prefix: index_
+        period: 24h
 
 storage_config:
   filesystem:
     directory: /tmp/loki/chunks
 ```
+
 This is a minimal, dev-friendly configuration storing logs on the local filesystem.
 
 #### 📦 Step 3: Add Grafana Service
+
 Now, add Grafana to your docker-compose.yml:
 
 ```yaml
@@ -125,20 +143,24 @@ services:
     image: grafana/grafana:10.2.3
     container_name: grafana
     ports:
-      - "3000:3000"
+      - '3000:3000'
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
     depends_on:
       - loki
 ```
+
 Explanation:
+
 - Exposes port 3000 for Grafana’s web UI.
 - Sets default admin credentials (for local dev — change these in production).
 - Waits for Loki to start first via depends_on.
 
 ### ✅ Summary
+
 At this point, your Docker Compose stack will have:
+
 - FastAPI
 - Celery
 - RabbitMQ
@@ -148,19 +170,24 @@ At this point, your Docker Compose stack will have:
 All services connected, and ready to receive logs or visualize them.
 
 ## 📖 Configuring FastAPI and Celery Logging to Push Logs to Loki
+
 We’ll use Python’s built-in logging module, along with a custom HTTP log handler to send structured JSON logs directly to Loki.
 
 You could use third-party libraries like python-loki, but to keep it simple and transparent, we’ll write a lightweight custom handler using requests.
 
 #### 📦 Step 1: Install Required Packages
+
 ```bash
 pip install requests python-json-logger
 ```
+
 - requests → to make HTTP POST requests to Loki
 - python-json-logger → to structure log records as JSON
 
 #### 📖 Step 2: Create a Custom Non-Blocking Loki Log Handler
+
 In your project, create a file loki_handler.py:
+
 ```python
 import logging
 import requests
@@ -211,12 +238,16 @@ class LokiHandler(logging.Handler):
             print(f"Failed to push log to Loki: {e}")
 
 ```
+
 Key Improvement:
+
 - Each log push is done in a background thread.
 - emit() returns immediately, avoiding latency impact.
 
-####  📖 Step 3: Configure Logging in FastAPI
+#### 📖 Step 3: Configure Logging in FastAPI
+
 In your FastAPI main.py:
+
 ```python
 import logging
 from loki_handler import LokiHandler, JsonFormatter
@@ -244,8 +275,11 @@ logger.addHandler(loki_handler)
 # Example log
 logger.info("FastAPI service started.")
 ```
+
 #### 📖 Step 4: Configure Logging in Celery
+
 In your Celery worker module (like worker.py):
+
 ```python
 import logging
 from loki_handler import LokiHandler, JsonFormatter
@@ -273,36 +307,43 @@ logger.addHandler(loki_handler)
 # Example log
 logger.info("Celery worker started.")
 ```
+
 ✅ Result:
+
 - Logs from both FastAPI and Celery are structured JSON.
 - Sent asynchronously to Loki via HTTP API.
 - No delay or blocking in the main application or worker threads.
 - Immediately available to query in Grafana.
 
-
 ## 📖 Configuring Grafana to Visualize Loki Logs
+
 Once your Grafana container is up and running (on http://localhost:3000), let’s connect it to Loki and build a basic log dashboard.
 
 #### 📦 Step 1: Access Grafana
+
 Open your browser and visit:
 👉 http://localhost:3000
 
 Default credentials (as per our Docker Compose config):
+
 - Username: admin
 - Password: admin
 
 #### 📦 Step 2: Add Loki as a Data Source
+
 1. In Grafana’s left sidebar, click Settings → Data Sources
 2. Click Add data source
 3. Search for Loki and Click Loki
 4. In the HTTP URL field, enter:
-```http://loki:3100```
-(this uses the Docker Compose service name loki to connect internally)
+   `http://loki:3100`
+   (this uses the Docker Compose service name loki to connect internally)
 
 5. Click Save & Test — it should succeed if everything’s wired correctly.
 
 #### 📦 Step 3: Create a Log Panel
+
 Now, let’s visualize those logs.
+
 1. In Grafana’s left menu, click Dashboards → New → New Dashboard
 
 2. Click Add a new panel
@@ -316,13 +357,17 @@ Now, let’s visualize those logs.
 ```json
 {app="fastapi"}
 ```
+
 - Click Run query — you should see your logs appear.
 
 4. You can also query Celery logs:
+
 ```json
 {app="celery"}
 ```
+
 5. Customize your panel’s display options:
+
 - Time range
 - Log labels
 - Color coding based on log levels if your JSON logs have level fields
@@ -330,21 +375,27 @@ Now, let’s visualize those logs.
 6. Click Apply
 
 #### 📦 Step 4: Build a Simple Dashboard
+
 You can now create multiple panels:
+
 - One for FastAPI logs
 - One for Celery logs
 - One showing only error logs:
+
 ```json
 {app="fastapi"} |= "ERROR"
 ```
+
 - And maybe one counting number of logs over time.
 
 ### ✅ Final Result:
+
 Grafana now visualizes real-time logs from FastAPI and Celery via Loki.
 You can filter by labels (app, env) or search by message content.
 Dashboards provide centralized visibility into your entire stack’s logs.
 
 ## ✅ Pros:
+
 Easy to set up and lightweight
 
 No need for extra log shipper services like Promtail
@@ -356,6 +407,7 @@ Non-blocking logging — logs sent in the background, no delay for API or worker
 Structured JSON logs make filtering and searching easier
 
 ## ⚠️ Cons:
+
 Logs might be lost if the service crashes before sending them
 
 No retry mechanism if Loki is temporarily unavailable
@@ -365,6 +417,7 @@ Not ideal for high log volumes in production systems
 Too many individual HTTP requests if log volume is very high
 
 ## 📖 Conclusion
+
 In this post, we extended our FastAPI + Celery system by adding a centralized logging and monitoring solution using Grafana Loki. Instead of relying on scattered log files or multiple log shippers, we configured both FastAPI and Celery to push structured JSON logs directly to Loki via its HTTP API.
 
 To keep our application performance smooth, we built a custom, non-blocking log handler that sends logs asynchronously to Loki without delaying API requests or background job execution.
@@ -372,6 +425,7 @@ To keep our application performance smooth, we built a custom, non-blocking log 
 With Grafana connected to Loki, we created real-time dashboards to query, filter, and visualize logs by labels — making it easy to track job executions, debug issues, and monitor errors across distributed services.
 
 ### 📌 Key Takeaways:
+
 Loki is a lightweight, scalable, and easy-to-integrate logging system perfect for microservices and containerized environments.
 
 Pushing logs directly via HTTP simplifies your stack for small to mid-sized projects without needing extra log shipping services.
@@ -381,6 +435,7 @@ Grafana provides powerful log visualization and filtering capabilities when comb
 Offloading log delivery to background threads avoids introducing latency into your core app and worker processes.
 
 ### 🌏 References
+
 - [📖 Official Grafana Loki HTTP API Reference](https://grafana.com/docs/loki/latest/reference/loki-http-api/)
 
 - [📖 Official Grafana Loki Configuration Guid](https://grafana.com/docs/loki/latest/configure/)
@@ -388,6 +443,7 @@ Offloading log delivery to background threads avoids introducing latency into yo
 - And Our Best friend **ChatGPT💕**
 
 ### 📌 What’s Next?
+
 In a future post, I’ll cover how to wrap this entire stack — FastAPI, Celery, RabbitMQ, Loki, and Grafana — into a clean Docker Compose deployment, making it easy to spin up the entire infrastructure locally or in staging environments with a single command.
 
 Stay tuned!

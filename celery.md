@@ -1,3 +1,9 @@
+---
+title: 🚀 Handling Long-Running Jobs in FastAPI with Celery & RabbitMQ
+date: 2025-07-05
+description: Learn how to manage long-running tasks in FastAPI using Celery and RabbitMQ
+---
+
 # 🚀 Handling Long-Running Jobs in FastAPI with Celery & RabbitMQ
 
 ## 📖 Introduction
@@ -21,6 +27,7 @@ Modern web applications often need to perform operations that take a long time�
 ## 🎯 Use Case
 
 We'll build an API that supports:
+
 - **ML model training tasks**
 - **System command executions**
 - **Data transformation operations**
@@ -64,8 +71,8 @@ services:
   rabbitmq:
     image: rabbitmq:management
     ports:
-      - "5672:5672"
-      - "15672:15672"
+      - '5672:5672'
+      - '15672:15672'
 ```
 
 > 💡 **Tip:** Access the RabbitMQ management UI at [http://localhost:15672](http://localhost:15672) (default user/pass: guest/guest).
@@ -160,7 +167,8 @@ celery -A celery_app.celery worker --loglevel=info
 uvicorn main:app --reload
 ```
 
-> ⚠️ **Note:**  
+> ⚠️ **Note:**
+>
 > - Make sure RabbitMQ is running before starting Celery and FastAPI.
 > - If you use Docker for all services, update the broker URL to use the RabbitMQ service name (e.g., `broker='amqp://guest:guest@rabbitmq:5672//'`).
 
