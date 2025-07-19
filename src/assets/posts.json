@@ -1,0 +1,16 @@
+[
+  {
+    "title": "📝 Centralized Logging with Loki & Grafana",
+    "slug": "loki-monitoring",
+    "date": "2025-07-10",
+    "description": "How to collect logs from FastAPI and Celery using Loki",
+    "file": "loki-monitoring.md"
+  },
+  {
+    "title": "🚀 Handling Long-Running Jobs in FastAPI with Celery & RabbitMQ",
+    "slug": "celery",
+    "date": "2025-07-05",
+    "description": "Learn how to manage long-running tasks in FastAPI using Celery and RabbitMQ",
+    "file": "celery.md"
+  }
+]
