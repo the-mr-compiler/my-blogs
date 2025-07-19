@@ -6,7 +6,7 @@ description: How to collect logs from FastAPI and Celery using Loki
 
 # 📝 Centralized Logging with Loki & Grafana
 
-In my [previous blog](https://medium.com/@mrcompiler/handling-long-running-jobs-in-fastapi-with-celery-rabbitmq-9c3d72944410), I demonstrated how to handle long-running jobs in FastAPI using Celery and RabbitMQ. While this setup works well for asynchronous task execution, monitoring logs from multiple services — like the FastAPI API server and Celery workers — becomes a challenge as the system grows.
+In my [previous blog](#/post/celery), I demonstrated how to handle long-running jobs in FastAPI using Celery and RabbitMQ. While this setup works well for asynchronous task execution, monitoring logs from multiple services — like the FastAPI API server and Celery workers — becomes a challenge as the system grows.
 
 Without a centralized log management system, you often find yourself SSH-ing into containers or instances, tailing log files, and manually searching for errors or debugging information. This is inefficient and unsustainable for production-grade applications.
 
@@ -55,14 +55,12 @@ For a FastAPI + Celery system, this means you can centralize logs from your API 
 The architecture for our centralized logging setup is organized into three distinct layers: Application Layer, Messaging, and Logging & Monitoring.
 
 - The Application Layer contains two main services:
-
   - FastAPI App, which handles incoming API requests from clients and submits long-running or background jobs to the message broker.
   - Celery Worker, which listens to the message queue and processes those jobs asynchronously.
 
 - The Messaging component, RabbitMQ, acts as the message broker facilitating reliable communication between FastAPI and Celery. FastAPI publishes job messages to the queue, and Celery workers consume them when ready.
 
 - The Logging & Monitoring layer consists of two important tools:
-
   - Loki, a lightweight, horizontally scalable log aggregation system where both FastAPI and Celery services push their logs directly via HTTP API.
 
   - Grafana, a powerful visualization platform that connects to Loki, queries the logs, and presents them through customizable dashboards for easy monitoring and debugging.
@@ -87,7 +85,7 @@ services:
     image: grafana/loki:2.9.4
     container_name: loki
     ports:
-      - '3100:3100'
+      - "3100:3100"
     command: -config.file=/etc/loki/local-config.yaml
     volumes:
       - ./loki-config.yaml:/etc/loki/local-config.yaml
@@ -143,7 +141,7 @@ services:
     image: grafana/grafana:10.2.3
     container_name: grafana
     ports:
-      - '3000:3000'
+      - "3000:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin

@@ -40,6 +40,40 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     localStorage.setItem("theme", theme);
   }, [theme]);
 
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.id = "markdown-css";
+
+    // Load local files from node_modules
+    link.href =
+      theme === DARK
+        ? "public/css/github-markdown-dark.css"
+        : "public/css/github-markdown-light.css";
+
+    document.head.appendChild(link);
+
+    return () => {
+      document.getElementById("markdown-css")?.remove();
+    };
+  }, [theme]);
+
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "stylesheet";
+    link.id = "highlight-css";
+
+    // Load local files from node_modules
+    link.href =
+      theme === DARK ? "public/css/github-dark.css" : "public/css/github.css";
+
+    document.head.appendChild(link);
+
+    return () => {
+      document.getElementById("highlight-css")?.remove();
+    };
+  }, [theme]);
+
   return (
     <ThemeContext.Provider value={{ theme, setTheme }}>
       {children}

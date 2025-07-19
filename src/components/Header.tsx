@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import DarkModeToggle from "./DarkModeToggle";
 
 type MenuItemProp = {
@@ -15,7 +16,7 @@ type HeaderProps = {
 const MenuItem = ({ label, submenu, href }: MenuItemProp) => {
   return (
     <li>
-      <a href={href}>{label}</a>
+      <Link to={href || "#"}>{label}</Link>
       {submenu && submenu.length > 0 && (
         <ul className="p-2">
           {submenu.map((subItem, index) => (
@@ -29,7 +30,7 @@ const MenuItem = ({ label, submenu, href }: MenuItemProp) => {
 
 const Header = ({ title, menuItems, showToggleTheme }: HeaderProps) => {
   return (
-    <header className="navbar bg-base-100 shadow-sm">
+    <header className="navbar bg-base-100 sticky top-0 z-50 shadow-md">
       <div className="navbar-start">
         <div className="dropdown">
           <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -62,7 +63,9 @@ const Header = ({ title, menuItems, showToggleTheme }: HeaderProps) => {
             ))}
           </ul>
         </div>
-        <a className="btn btn-ghost text-xl">{title}</a>
+        <Link to="/" className="btn btn-ghost text-xl">
+          {title}
+        </Link>
       </div>
       <div className="navbar-center hidden lg:flex">
         <ul className="menu menu-horizontal px-1">

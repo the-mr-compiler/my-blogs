@@ -21,7 +21,7 @@ export const fetchPostsList = async () => {
 export const fetchMarkdownContent = async (filename: string) => {
   try {
     const res = await fetch(
-      `https://raw.githubusercontent.com/the-mr-compiler/my-blogs/refs/heads/main/${filename}`,
+      `https://raw.githubusercontent.com/the-mr-compiler/my-blogs/refs/heads/main/src/blogs/${filename}`,
     );
     if (!res.ok) throw new Error(`Failed to fetch markdown: ${res.status}`);
     const md = await res.text();

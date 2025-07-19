@@ -4,8 +4,7 @@ import fm from "front-matter";
 import DOMPurify from "dompurify";
 import { useParams } from "react-router-dom";
 import { fetchMarkdownContent } from "../utils/fetchPosts";
-import "github-markdown-css/github-markdown-light.css";
-import "highlight.js/styles/github.css";
+import "highlight.js/styles/github-dark.css";
 import hljs from "highlight.js";
 
 type PostType = {
@@ -25,7 +24,7 @@ renderer.code = ({ lang, text }) => {
   return `<pre><code class="hljs ${validLang}">${highlighted}</code></pre>`;
 };
 
-marked.setOptions({ renderer });
+marked.setOptions({ renderer, gfm: true, breaks: true });
 
 const PostPage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -41,6 +40,11 @@ const PostPage = () => {
       }
       try {
         const md = (await fetchMarkdownContent(`${slug}.md`)) || "";
+        if (!md.trim()) {
+          setError("Post not found.");
+          setPost(null);
+          return;
+        }
         const { attributes, body } = fm(md);
         const attrs = attributes as {
           title?: string;
@@ -67,17 +71,26 @@ const PostPage = () => {
 
     return (
       <div className="prose mx-auto px-4">
-        <div className="alert alert-error mb-4">{error}</div>
+        <div className="alert alert-error alert-outline m-10 rounded-lg border-2">
+          <h3>{error}</h3>
+        </div>
       </div>
     );
   }
 
-  if (!post) return <p>Loading...</p>;
+  if (!post)
+    return (
+      <div className="h-screen w-screen items-center">
+        <span className="loading loading-ball loading-xl"></span>{" "}
+      </div>
+    );
 
   return (
     <div className="prose mx-auto px-4">
       <h1>{post.title}</h1>
-      <p className="text-gray-500">{post.date}</p>
+      <p className="text-gray-500">
+        {new Date(post.date).toLocaleDateString()}
+      </p>
       <div
         className="markdown-body p-5"
         dangerouslySetInnerHTML={{ __html: post.content }}

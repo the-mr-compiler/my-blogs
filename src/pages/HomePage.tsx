@@ -1,6 +1,5 @@
-import React from "react";
-import posts from "../assets/posts.json";
 import { useNavigate } from "react-router-dom";
+import posts from "../assets/posts.json";
 
 function HomePage() {
   const navigate = useNavigate();
