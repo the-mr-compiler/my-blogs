@@ -19,5 +19,12 @@
     "date": "2025-11-24",
     "description": "In this blog we learn how we can configure K8s to autoscale number of pods based on current queue size.",
     "file": "autoscaling-celery-with-keda.md"
+  },
+  {
+    "title": "🏗️ Building a Dynamic Blog Site with React and GitHub Raw Content",
+    "slug": "my-blog-site-using-github-raw",
+    "date": "2026-01-05",
+    "description": "Learn how I created a serverless blog platform using React, Vite, and GitHub for dynamic content delivery",
+    "file": "my-blog-site-using-github-raw.md"
   }
 ]
