@@ -1,12 +1,33 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import posts from "../assets/posts.json";
+import { fetchPostsList } from "../utils/fetchPosts";
+
+type Post = {
+  title: string;
+  slug: string;
+  date: string;
+  description: string;
+  file: string;
+};
 
 function HomePage() {
   const navigate = useNavigate();
-  // Sort posts by date descending
-  const sortedPosts = [...posts].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime(),
-  );
+
+  const [sortedPosts, setSortedPosts] = useState<Post[]>([]);
+
+  useEffect(() => {
+    fetchPostsList().then((result) => {
+      setSortedPosts(result);
+    });
+
+    return () => {};
+  }, []);
+
+  if (!sortedPosts || sortedPosts.length === 0)
+    return (
+      <div className="mx-auto flex max-w-3xl flex-col gap-8 p-4">Loading..</div>
+    );
+
   const latestPost = sortedPosts[0];
   const otherPosts = sortedPosts.slice(1);
 

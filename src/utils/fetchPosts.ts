@@ -3,7 +3,7 @@
 export const fetchPostsList = async () => {
   try {
     const res = await fetch(
-      "https://raw.githubusercontent.com/yourname/my-blog/main/posts/posts.json",
+      "https://raw.githubusercontent.com/the-mr-compiler/my-blogs/refs/heads/main/src/assets/posts.json",
     );
     if (!res.ok) throw new Error(`Failed to fetch posts list: ${res.status}`);
     const posts = await res.json();

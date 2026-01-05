@@ -12,5 +12,12 @@
     "date": "2025-07-05",
     "description": "Learn how to manage long-running tasks in FastAPI using Celery and RabbitMQ",
     "file": "celery.md"
+  },
+  {
+    "title": "⚙️ Autoscaling Celery Workers with KEDA on Kubernetes",
+    "slug": "autoscaling-celery-with-keda",
+    "date": "2025-11-24",
+    "description": "In this blog we learn how we can configure K8s to autoscale number of pods based on current queue size.",
+    "file": "autoscaling-celery-with-keda.md"
   }
 ]

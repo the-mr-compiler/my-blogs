@@ -6,6 +6,7 @@ import { useParams } from "react-router-dom";
 import { fetchMarkdownContent } from "../utils/fetchPosts";
 import "highlight.js/styles/github-dark.css";
 import hljs from "highlight.js";
+import PageNotFound from "../assets/page_not_found.svg";
 
 type PostType = {
   title: string;
@@ -66,14 +67,20 @@ const PostPage = () => {
     load();
   }, [slug]);
 
+
+
   if (error) {
     console.log(error);
-
     return (
-      <div className="prose mx-auto px-4">
-        <div className="alert alert-error alert-outline m-10 rounded-lg border-2">
-          <h3>{error}</h3>
-        </div>
+      <div className="prose mx-auto flex flex-col items-center px-4">
+        {/* <div className="alert alert-error alert-outline m-10 rounded-lg border-2"> */}
+        {/* <h3>{error}</h3> */}
+        <img src={PageNotFound} width="600vw"  />
+        {/* </div> */}
+        <a href="https://storyset.com/online">
+          Online illustrations by Storyset
+        </a>
+        
       </div>
     );
   }
